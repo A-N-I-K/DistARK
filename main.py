@@ -42,7 +42,7 @@ def clockSync():
     return ((59 - now.minute) * 60) + (60 - now.second)
 
 
-def mainLoop(rcon):
+def mainLoop(rcon, bpList):
 
     # Initialize looping flag as running
     loopRunning = True
@@ -70,7 +70,7 @@ def mainLoop(rcon):
             if not isinstance(con, Exception):
 
                 # Send notification
-                resp = con.command("TribeChatMsg 3 1244167861 Hourly complimentary wishbone distributed. Happy Thanksgiving! - ANIK")
+                resp = con.command("TribeChatMsg 3 1244167861 Hourly complimentary items distributed. Happy Holidays! - ANIK")
 
                 # Print response
                 print(resp)
@@ -86,23 +86,28 @@ def mainLoop(rcon):
             # Force delay
             delay(1)
 
-            # Clear buffer and attempt to reconnect with server
-            con = startCon(rcon)
-
             # Check if the server is online
             if not isinstance(con, Exception):
 
-                # Distribute item
-                resp = con.command("GiveItemToAll blueprint'/game/primalearth/coreblueprints/resources/primalitemresource_wishbone.primalitemresource_wishbone' 1 0 0")
+                for bp in bpList:
 
-                # Print response
-                print(resp)
+                    # Clear buffer and attempt to reconnect with server
+                    con = startCon(rcon)
 
-                # Terminate connection with server
-                endCon(con)
+                    # Distribute item
+                    resp = con.command("GiveItemToAll {} {} 0 0".format(bp[0], bp[1]))
 
-                # Change command flag to sent
-                commandSent = True
+                    # Print response
+                    print(resp)
+
+                    # Terminate connection with server
+                    endCon(con)
+
+                    # Change command flag to sent
+                    commandSent = True
+
+                    # Force delay
+                    delay(1)
 
             else:
 
@@ -129,11 +134,15 @@ def main():
     pw = "quagganland"
     port = 32330
 
+    # Blueprint list
+    bpList = [("Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_Coal.PrimalItemResource_Coal'", 2),
+              ("Blueprint'/Game/PrimalEarth/CoreBlueprints/Resources/PrimalItemResource_MistleToe.PrimalItemResource_MistleToe'", 1)]
+
     # Initialize RCON object using server parameters
     rcon = mcrcon.MCRcon(ip, pw, port)
 
     # Execute looping script
-    mainLoop(rcon)
+    mainLoop(rcon, bpList)
 
 
 if __name__ == '__main__':
